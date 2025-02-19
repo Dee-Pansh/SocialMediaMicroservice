@@ -1,4 +1,4 @@
-const logger = require("logger");
+const logger = require("../utils/logger");
 const { validateRegisteration } = require("../utils/validation");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
@@ -20,6 +20,8 @@ const registerUser = async (req, res) => {
             });
         }
 
+        const { email, username, password } = req.body;
+
         let user = await User.findOne({ $or: [{ email }, { password }, { username }] });
 
         if (user) {
@@ -30,7 +32,7 @@ const registerUser = async (req, res) => {
             });
         }
         
-        const { email, username, password } = req.body;
+        
 
         user = new User({ email, username, password });
 

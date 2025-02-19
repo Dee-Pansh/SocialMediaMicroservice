@@ -35,6 +35,6 @@ expireAfterSeconds	                      Deletion
 */
 refreshTokenSchema.index({ expiresAt: 1, expireAfterSeconds: 0 });
 
-const RefreshToken = mongoose.model("RefreshToken",refreshTokenSchema);
+const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema);
 
 module.exports = RefreshToken;

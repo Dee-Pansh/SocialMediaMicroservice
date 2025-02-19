@@ -25,7 +25,7 @@ const refreshTokenSchema = new mongoose.Schema({
 /*
 Time to live index (TTL index) in MongoDB : autmat. deletes expired documents after specified amount of time 
 
-Under the hood : we create TTL index on Date fleid, then mongoDB monitors this field and deletes docs once the time is reached.
+Under the hood : we create TTL index on Date field, then mongoDB monitors this field and deletes docs once the time is reached.
 
 expireAfterSeconds	                      Deletion                                       
      0	                       Deletes exactly when expiresAt is reached.

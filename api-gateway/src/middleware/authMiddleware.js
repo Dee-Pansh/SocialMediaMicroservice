@@ -21,7 +21,7 @@ const authMiddleware = async (req, res, next) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (err) {
         logger.warn("Token is invalid");
-        res.status(429).json({
+        return res.status(429).json({
           success: false,
           message: "Token is invalid",
         });

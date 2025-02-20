@@ -47,6 +47,7 @@ const proxyOptions = {
 
 app.use(cors());
 app.use(helmet());
+app.use(express.json());
 
 
 app.use((req, res, next) => {
@@ -65,7 +66,7 @@ app.use(RateLimit);
 //proxy for "identity-service" microservice
 app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {
     ...proxyOptions,
-    proxyResOptDecorator: (proxyReqOpts, srcReq) => {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
         proxyReqOpts.headers["Content-Type"] = "application/json";
         return proxyReqOpts;
     },
@@ -80,9 +81,11 @@ app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {
 //proxy for "post-service" microservice
 app.use("/v1/posts",validateToken,proxy(process.env.POST_SERVICE_URL,{
     ...proxyOptions,
-    proxyResOptDecorator: (proxyReqOpts, srcReq) => {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        console.log("srcreq:user : "+JSON.stringify(srcReq.user));
+        
         proxyReqOpts.headers["Content-Type"] = "application/json";
-        proxyReqOpts.headers["x-user-id"]=srcReq.user._id;
+        proxyReqOpts.headers["x-user-id"]=srcReq.user.userId;
         return proxyReqOpts;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {

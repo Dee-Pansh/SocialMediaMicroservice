@@ -51,6 +51,33 @@ const getAllPosts = async (req, res) => {
     logger.info("Getting all Posts end point hits...");
     try {
 
+        const page = req.query.page || 1;
+        const limit = req.query.limit || 10;
+        const startIndex = (page - 1) * limit;
+
+        const cacheKey = `posts:${page}:${limit}`;
+
+        const cachedPosts = await req.redisClient.get(cacheKey);
+
+        if (cachedPosts)
+            return res.json(JSON.parse(cachedPosts));
+
+        const posts = await Post.find({}).sort({ createdAt: -1 }).skip(startIndex).limit(limit);
+
+        const totalNoOfPosts = await Post.countDocuments();
+
+        const result = {
+            posts,
+            currentpage: page,
+            totalPages: Math.ceil(totalNoOfPosts / limit),
+            totalPosts: totalNoOfPosts
+        };
+
+        await req.redisClient.setex(cacheKey, 300, JSON.stringify(result));
+
+        res.json(result);
+
+
     } catch (error) {
         logger.error("Error getting posts", error.message);
         res.status(400).json({

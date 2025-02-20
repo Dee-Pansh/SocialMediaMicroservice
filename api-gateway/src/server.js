@@ -8,6 +8,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const logger = require("./utils/logger");
 const proxy = require("express-http-proxy");
+const validateToken = require("./middleware/authMiddleware");
 require("dotenv").config();
 
 const PORT = process.env.PORT;
@@ -58,7 +59,10 @@ app.use((req, res, next) => {
 //applying Rate Limit to our routes
 app.use(RateLimit);
 
-//proxy 
+
+
+
+//proxy for "identity-service" microservice
 app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {
     ...proxyOptions,
     proxyResOptDecorator: (proxyReqOpts, srcReq) => {
@@ -72,12 +76,29 @@ app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {
 }));
 
 
+
+//proxy for "post-service" microservice
+app.use("/v1/posts",validateToken,proxy(process.env.POST_SERVICE_URL,{
+    ...proxyOptions,
+    proxyResOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers["Content-Type"] = "application/json";
+        proxyReqOpts.headers["x-user-id"]=srcReq.user._id;
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info(`Response received from Post service : ${proxyRes.statusCode}`);
+        return proxyResData;
+    }
+}))
+
+
 app.use(globalErrorHandler);
 
 
 app.listen(PORT, () => {
     logger.info(`API Gateway is running on port ${PORT}`);
     logger.info(`Identity service is running on port ${process.env.IDENTITY_SERVICE_URL}`);
+    logger.info(`Post service is running on port ${process.env.POST_SERVICE_URL}`);
     logger.info(`Redis Url : ${process.env.REDIS_URL}`);
 })
 

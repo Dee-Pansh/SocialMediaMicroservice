@@ -25,12 +25,12 @@ const rateLimitCommonSettings = {
 
 const rateLimitForCreatePostApi = {
     windowMs: 10 * 60 * 1000,
-    max: 10,
+    max: 25,
 };
 
 const rateLimitForGettingPosts = {
     windowMs: 10 * 60 * 1000,
-    max: 15
+    max: 25
 };
 
 
@@ -104,7 +104,7 @@ redisClient.on("error", (err) => {
 databaseConnection().then(response => {
     logger.info("Database connected successfully");
     app.listen(PORT, () => {
-        console.log(`Post-service is listening on port ${PORT}`);
+        logger.info(`Post-service is listening on port ${PORT}`);
     })
 }).catch(error => {
     logger.error("Database connection failed!", error.message);

@@ -79,7 +79,7 @@ const loginUser = async (req, res) => {
 
         if (!existingUser) {
             logger.warn("Invalid Credentials");
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: "Invalid Credentials"
             });
@@ -89,7 +89,7 @@ const loginUser = async (req, res) => {
         const passwordCheck = await existingUser.comparePassword(password);
         if (!passwordCheck) {
             logger.warn("Invalid Password");
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: "Invalid Password"
             });

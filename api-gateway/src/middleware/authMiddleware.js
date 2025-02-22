@@ -12,7 +12,7 @@ const authMiddleware = async (req, res, next) => {
 
     if (!token) {
       logger.warn("Token is missing");
-      res.status(401).json({
+      return  res.status(401).json({
         success: false,
         message: "Authentication required",
       });

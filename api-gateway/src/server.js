@@ -17,7 +17,7 @@ const redisClient = new Redis(process.env.REDIS_URL);
 
 const RateLimit = rateLimit({
     windowMs: 10 * 60 * 1000,
-    max: 10,
+    max: 25,
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
@@ -79,13 +79,13 @@ app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {
 
 
 //proxy for "post-service" microservice
-app.use("/v1/posts",validateToken,proxy(process.env.POST_SERVICE_URL,{
+app.use("/v1/posts", validateToken, proxy(process.env.POST_SERVICE_URL, {
     ...proxyOptions,
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
-        console.log("srcreq:user : "+JSON.stringify(srcReq.user));
-        
+        console.log("srcreq:user : " + JSON.stringify(srcReq.user));
+
         proxyReqOpts.headers["Content-Type"] = "application/json";
-        proxyReqOpts.headers["x-user-id"]=srcReq.user.userId;
+        proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
         return proxyReqOpts;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {

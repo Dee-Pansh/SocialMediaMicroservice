@@ -9,6 +9,7 @@ const globalErrorHandler = require("./utils/errorHandler");
 const logger = require("./utils/logger");
 const postRouter = require("./routes/post-service");
 const auth = require("./middleware/Auth");
+const { connectToRabbitMQ } = require("./utils/rabbitmq");
 require("dotenv").config();
 const PORT = process.env.PORT;
 
@@ -101,8 +102,12 @@ redisClient.on("error", (err) => {
 })
 
 
-databaseConnection().then(response => {
+databaseConnection().then(async(response) => {
     logger.info("Database connected successfully");
+
+    //connecting to rabbit mq server
+    await connectToRabbitMQ();
+
     app.listen(PORT, () => {
         logger.info(`Post-service is listening on port ${PORT}`);
     })

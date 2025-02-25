@@ -1,7 +1,9 @@
 const logger = require("../utils/logger");
 const { validateCreatePost } = require("../utils/validation");
+const {publishEvent} = require("../utils/rabbitmq");
 const Post = require("../models/Post");
 
+//for deleting the cached posts in redisDB
 const invalidateCachedPosts = async (req, input) => {
 
     await req.redisClient.del(`post:${input}`);
@@ -29,10 +31,10 @@ const createPost = async (req, res) => {
         }
 
         //parsing request body
-        const { content, mediaIds } = req.body;
+        const { content, mediaIDs } = req.body;
 
         //creating new post
-        const post = new Post({ user: req.user.userId, content, mediaIds: mediaIds || [] });
+        const post = new Post({ user: req.user.userId, content, mediaIDs: mediaIDs || [] });
 
         //saving to database
         await post.save();
@@ -150,24 +152,37 @@ const deletePost = async (req, res) => {
 
         const postId = req.params.id;
 
+        //validation
         if (!postId)
             return res.status(400).json({
                 message: "Post Id not provided",
                 success: false
             });
 
-
+         //finding and deleting post from MongoDB database
         const deletedPost = await Post.findOneAndDelete({ _id: postId });
-
         if (!deletedPost)
             return res.status(404).json({
                 success: false,
                 message: `No post is found with post id : ${postId}`
             });
 
+
+       //publish post delete method to rabbitMQ
+       const result = await publishEvent("post.deleted",
+        {
+            postId:postId.toString(),
+            userId:req.user.userId,
+            mediaIDs:deletedPost.mediaIDs
+        }
+       );
+
+       //removing cacheposts from redisDB
         await invalidateCachedPosts(req, req.params.id);
 
-        res.status(200).json({
+
+       //sending response to client
+        res.json({
             success: true,
             message: "Post deleted successfully"
         });

@@ -74,6 +74,7 @@ app.use("/api/media", routes);
 //global error handler
 app.use(globalErrorHandler);
 
+console.log("media port : "+PORT);
 
 //database connection
 databaseConnection()
